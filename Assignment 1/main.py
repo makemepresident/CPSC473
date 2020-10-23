@@ -8,47 +8,27 @@ lines_arr = []
 initial = 0
 
 # Have to parse file a single line at time (cannot store in memory)
-# def parseFile(filename):
-#     reader = open(filename)
-#     lines = reader.readlines()
-#     for i in range(0, len(lines)):
-#         if i == 0:
-#             records = int(stripNL(lines[0]))
-#             continue
-#         arr = lines[i].split('\t')
-#         arr[2] = arr[2].strip()
-#         lines_arr.append(arr)
+def parseFile(filename):
+    reader = open(filename) # returns iterator, does not store in memory
+    lines = reader.readlines()
+    for i in range(0, len(lines)):
+        if i == 0:
+            records = int(stripNL(lines[0]))
+            continue
+        arr = lines[i].split('\t')
+        arr[2] = arr[2].strip()
+        lines_arr.append(arr[2].split(' '))       
 
-# def parseFile(filename, start, final):
-#     with open(filename) as line:
-#         for i in enumerate(line):
-#             if i < start:
-#                 continue
-
-
-        
-
-# def stripNL(string):
-#     string.replace('\n', '')
-#     return string
+def stripNL(string):
+    string.replace('\n', '')
+    return string
 
 # Implemented from included wiki_algo screenshot
 # https://en.wikipedia.org/wiki/Apriori_algorithm
-def apriori(db=None, minsup=None):
-    db = [['a', 'c', 'd'], ['b', 'c', 'e'], ['a', 'b', 'c', 'e'], ['b', 'e']]
-    # db = [['a', 'b', 'e'], ['b', 'e'], ['b', 'c', 'd', 'e'], ['d', 'e']]
+def apriori(db=None, minsup=0.004):
     candidate = init_candidate(db) # Initial candidate table containing singletons
-    # candidate = [['a', 'b'], ['a', 'c'], ['a', 'e'], ['b', 'c'], ['b', 'e'], ['c', 'e']]
-    # candidate = [['a'], ['b'], ['c'], ['d'], ['e']]
-    # candidate = [['b', 'e'], ['b', 'd'], ['e', 'd']]
-    # print(candidate)
     while len(candidate) != 0:
-        level_table = gen_level_table(db, candidate, 0.50)
-        # print(union_level)
-        # print(level_table)
-        print(candidate)
-        print(level_table)
-        print()
+        level_table = gen_level_table(db, candidate, minsup)
         candidate = gen_candidate(level_table)
     print(union_level)
     return
@@ -138,4 +118,7 @@ def gen_candidate(level):
 #     supp_t = int(sys.argv[2])
 #     parseFile(sys.argv[1])
 
-apriori()
+filen = '1k5L'
+parseFile(sys.path[0] + '\\' + filen + '.txt')
+# print(lines_arr)
+apriori(lines_arr)
