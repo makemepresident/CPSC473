@@ -1,53 +1,43 @@
 import sys
 import itertools
 
+db = None
+minsup = 0.0
 union_level = []
-supp_t = 0
-records = 0
-lines_arr = []
-initial = 0
-
-# Have to parse file a single line at time (cannot store in memory)
-def parseFile(filename):
-    reader = open(filename) # returns iterator, does not store in memory
-    lines = reader.readlines()
-    for i in range(0, len(lines)):
-        if i == 0:
-            records = int(stripNL(lines[0]))
-            continue
-        arr = lines[i].split('\t')
-        arr[2] = arr[2].strip()
-        lines_arr.append(arr[2].split(' '))       
-
-def stripNL(string):
-    string.replace('\n', '')
-    return string
 
 # Implemented from included wiki_algo screenshot
 # https://en.wikipedia.org/wiki/Apriori_algorithm
-def apriori(db=None, minsup=0.004):
-    candidate = init_candidate(db) # Initial candidate table containing singletons
+def apriori():
+    candidate = init_candidate() # Initial candidate table containing singletons
     while len(candidate) != 0:
         level_table = gen_level_table(db, candidate, minsup)
         candidate = gen_candidate(level_table)
     print(union_level)
     return
 
-def init_candidate(db):
-    if not isinstance(db, list):
-        return None
+def parseEle(string):
+    parsed = string.split('\t')
+    elements = parsed[2].split(' ')
+    parsed = None
+    elements[len(elements) - 1] = elements[len(elements) - 1][:-1]
+    return elements
+
+
+def init_candidate():
     unique = []
-    for i in db:
-        if not isinstance(i, list):
-            return None
-        for j in i:
-            if [j] not in unique:
-                unique.append([j])
+    for index, value in enumerate(db):
+        if index == 0:
+            continue
+        elements = parseEle(value)
+        for i in elements:
+            if {i} not in unique:
+                unique.append({i})
     return unique
 
-def gen_level_table(db, candidate, minsup, dcl=[]):
-    level = {}
+def gen_level_table(candidate, minsup, dcl=[]):
+    level = []
     for i in db: #['a', 'c', 'd']
+        elements = parseEle(i)
         for j in candidate: # ['a']
             missing = False
             for k in j: # 'a'
@@ -118,7 +108,10 @@ def gen_candidate(level):
 #     supp_t = int(sys.argv[2])
 #     parseFile(sys.argv[1])
 
-filen = '1k5L'
-parseFile(sys.path[0] + '\\' + filen + '.txt')
-# print(lines_arr)
-apriori(lines_arr)
+filen = 'data'
+inputf = sys.path[0] + '\\' + filen + '.txt'
+db = open(inputf)
+
+l = init_candidate()
+print(l)
+print(len(l))
