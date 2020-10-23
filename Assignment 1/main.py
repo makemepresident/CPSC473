@@ -1,6 +1,7 @@
 import sys
 import itertools
 
+union_level = []
 supp_t = 0
 records = 0
 lines_arr = []
@@ -35,13 +36,21 @@ initial = 0
 # https://en.wikipedia.org/wiki/Apriori_algorithm
 def apriori(db=None, minsup=None):
     db = [['a', 'c', 'd'], ['b', 'c', 'e'], ['a', 'b', 'c', 'e'], ['b', 'e']]
-    candidate = init_candidate(db)
-    candidate = [['a', 'b'], ['a', 'c'], ['a', 'e'], ['b', 'c'], ['b', 'e'], ['c', 'e']]
-    # candidate = []
+    # db = [['a', 'b', 'e'], ['b', 'e'], ['b', 'c', 'd', 'e'], ['d', 'e']]
+    candidate = init_candidate(db) # Initial candidate table containing singletons
+    # candidate = [['a', 'b'], ['a', 'c'], ['a', 'e'], ['b', 'c'], ['b', 'e'], ['c', 'e']]
+    # candidate = [['a'], ['b'], ['c'], ['d'], ['e']]
+    # candidate = [['b', 'e'], ['b', 'd'], ['e', 'd']]
     # print(candidate)
-    temp = gen_level_table(db, candidate, 0.50)
-    print(temp)
-    gen_candidate(temp)
+    while len(candidate) != 0:
+        level_table = gen_level_table(db, candidate, 0.50)
+        # print(union_level)
+        # print(level_table)
+        print(candidate)
+        print(level_table)
+        print()
+        candidate = gen_candidate(level_table)
+    print(union_level)
     return
 
 def init_candidate(db):
@@ -74,13 +83,15 @@ def gen_level_table(db, candidate, minsup, dcl=[]):
     for i in level:
         if level[i] / len(db) < minsup:
             temp.append(i)
+        else:
+            union_level.append(i)
     for j in temp:
         dcl.append(j)
         del level[j]
     return level, dcl
 
 def gen_candidate(level):
-    x = level[0]
+    x = level[0] # Points to infrequent subsets
     y = []
     for i in x:
         y.append(list(i))
@@ -96,18 +107,22 @@ def gen_candidate(level):
                 z.append(t)
             else:
                 flag = False
-                for i in z:
-                    if set(i) == set(t):
+                for l in range(len(z)):
+                    if set(z[l]) == set(t):
                         flag = True
                 if not flag:
                     z.append(t)
     h = []
-    for i in level[1]:
-        for j in z:
-            if not set(list(i)).issubset(j):
-                h.append(j)
-    print(z)
-    print(h)
+    for j in z:
+        flag = False
+        for i in level[1]:
+            if set(list(i)).issubset(j):
+                flag = True
+        if not flag:
+            h.append(j)
+    # print(z)
+    # print(h)
+    return h
 
     # z = itertools.product(y, y[0])
     # print(list(z))
