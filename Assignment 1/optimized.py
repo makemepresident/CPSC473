@@ -1,9 +1,12 @@
 import sys
 import itertools
 
-db = None
 minsup = 0.0
 union_level = []
+levels = {}
+
+filen = 'data'
+inputf = sys.path[0] + '\\' + filen + '.txt'
 
 # Implemented from included wiki_algo screenshot
 # https://en.wikipedia.org/wiki/Apriori_algorithm
@@ -24,6 +27,7 @@ def parseEle(string):
 
 
 def init_candidate():
+    db = open(inputf)
     unique = []
     for index, value in enumerate(db):
         if index == 0:
@@ -34,31 +38,19 @@ def init_candidate():
                 unique.append({i})
     return unique
 
-def gen_level_table(candidate, minsup, dcl=[]):
-    level = []
-    for i in db: #['a', 'c', 'd']
-        elements = parseEle(i)
-        for j in candidate: # ['a']
-            missing = False
-            for k in j: # 'a'
-                if k not in i:
-                    missing = True
-                    break
-            if not missing:
-                if tuple(j) not in level:
-                    level[tuple(j)] = 1
-                else:
-                    level[tuple(j)] += 1
-    temp = []
-    for i in level:
-        if level[i] / len(db) < minsup:
-            temp.append(i)
-        else:
-            union_level.append(i)
-    for j in temp:
-        dcl.append(j)
-        del level[j]
-    return level, dcl
+def gen_level_table(candidate, dcl=[]):
+    db = open(inputf)
+    for index, value in enumerate(db):
+        if index == 0:
+            continue
+        elements = set(parseEle(value))
+        for item in candidate:
+            for val in item:
+                if val in elements:
+                    if val in levels:
+                        levels[val] += 1
+                    else:
+                        levels[val] = 1
 
 def gen_candidate(level):
     x = level[0] # Points to infrequent subsets
@@ -108,10 +100,11 @@ def gen_candidate(level):
 #     supp_t = int(sys.argv[2])
 #     parseFile(sys.argv[1])
 
-filen = 'data'
-inputf = sys.path[0] + '\\' + filen + '.txt'
+
 db = open(inputf)
 
 l = init_candidate()
+db = open(inputf)
+gen_level_table(l)
 print(l)
 print(len(l))
