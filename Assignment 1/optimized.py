@@ -2,15 +2,14 @@ import sys
 from itertools import product
 
 db_len = 0
-minsup = 0.01
+minsup = 0.5
 level = []
 candidate = []
 level_union = []
+level_union_count = []
 dcl = []
 
-# filen = 'data'
-filen = '1k5L'
-inputf = sys.path[0] + '\\' + filen + '.txt'
+filepath = None
 
 # Implemented from included wiki_algo screenshot
 # https://en.wikipedia.org/wiki/Apriori_algorithm
@@ -32,12 +31,14 @@ def parseEle(string):
 
 def init_candidate():
     global db_len
-    db = open(inputf)
+    global filepath
+    db = open(filepath)
     unique = []
     for index, value in enumerate(db):
         if index == 0:
+            value = value[:-1]
+            db_len = int(value)
             continue
-        db_len += 1
         elements = parseEle(value)
         for i in elements:
             if {i} not in unique and i != '':
@@ -46,8 +47,9 @@ def init_candidate():
 
 def gen_level_table():
     global level
+    global filepath
     level = [0] * len(candidate)
-    db = open(inputf)
+    db = open(filepath)
     for index, value in enumerate(db):
         if index == 0:
             continue
@@ -63,18 +65,6 @@ def gen_level_table():
             if flag:
                 level[index2] += 1
 
-        # for item in candidate:
-        #     temp_hash = 0
-        #     for val in item:
-        #         if val in elements:
-        #             temp_hash += hash(val)
-        #         else:
-        #             break
-        #         if temp_hash in level:
-        #             level[temp_hash] += 1
-        #         else:
-        #             level[temp_hash] = 1
-
 def gen_candidate():
     global db_len
     global candidate
@@ -87,61 +77,39 @@ def gen_candidate():
             dcl.append(item)
             continue
         level_union.append(item)
+        level_union_count.append(level[index])
         for i in range(index + 1, len(candidate)):
             if level[i] < min_count:
                 continue
             x = item.copy()
             for j in candidate[i]:
                 x.add(j)
+            for neg in dcl:
+                if neg.issubset(x):
+                    continue
             if x not in temp_candidate:
                 temp_candidate.append(x)
     candidate = temp_candidate
 
-    # x = level[0] # Points to infrequent subsets
-    # y = []
-    # for i in x:
-    #     y.append(list(i))
-    # z = []
-    # for i in range(len(y)): # ['a', 'c']
-    #     for j in range(i + 1, len(y)): # ['b', 'e']
-    #         t = list.copy(y[i])
-    #         for k in y[j]: # 'b'
-    #             if k in y[i]:
-    #                 continue
-    #             t.append(k)
-    #         if len(z) == 0:
-    #             z.append(t)
-    #         else:
-    #             flag = False
-    #             for l in range(len(z)):
-    #                 if set(z[l]) == set(t):
-    #                     flag = True
-    #             if not flag:
-    #                 z.append(t)
-    # h = []
-    # for j in z:
-    #     flag = False
-    #     for i in level[1]:
-    #         if set(list(i)).issubset(j):
-    #             flag = True
-    #     if not flag:
-    #         h.append(j)
-    # # print(z)
-    # # print(h)
-    # return h
+def main():
+    # Check if arguments exist, if they do not, cancel or set to default
+    global minsup
+    global filepath
+    if len(sys.argv) == 1 or len(sys.argv) > 3:
+        print("Unable to find or improper system arguments, check input carefully")
+        return
+    elif len(sys.argv) == 2:
+        minsup = 0.50
+        filepath = sys.path[0] + "\\" + sys.argv[1]
+    else:
+        x = int(sys.argv[2])
+        if x > 1:
+            x /= 100
+        filepath = sys.path[0] + "\\" + sys.argv[1]
+        minsup = x
+    apriori()
 
-    # z = itertools.product(y, y[0])
-    # print(list(z))
-
-# Check if arguments exist, if they do not, cancel or set to default
-# if len(sys.argv) == 1 or len(sys.argv) > 3:
-#     print("Unable to find or improper system arguments, check input carefully")
-# elif len(sys.argv) == 2:
-#     supp_t = 50
-#     parseFile(sys.argv[1])
-# else:
-#     supp_t = int(sys.argv[2])
-#     parseFile(sys.argv[1])
-
-apriori()
-print(level_union)
+main()
+print('|FPs| = ' + str(len(level_union)))
+for i, j in enumerate(level_union):
+    print(str(j) + ' : ' + str(level_union_count[i]))
