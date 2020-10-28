@@ -32,7 +32,11 @@ def parseEle(string):
 def init_candidate():
     global db_len
     global filepath
-    db = open(filepath)
+    try:
+        db = open(filepath)
+    except:
+        print("Problem finding filepath, try again - ensure the format \"____.txt\"")
+        sys.exit()
     unique = []
     for index, value in enumerate(db):
         if index == 0:
@@ -102,7 +106,7 @@ def main():
         minsup = 0.50
         filepath = sys.path[0] + "\\" + sys.argv[1]
     else:
-        x = int(sys.argv[2])
+        x = float(sys.argv[2])
         if x > 1:
             x /= 100
         filepath = sys.path[0] + "\\" + sys.argv[1]
