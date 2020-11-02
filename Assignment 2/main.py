@@ -1,4 +1,5 @@
 import sys
+from tree import Node
 
 large_db = [
     {'a', 'c', 'd', 'f', 'g', 'i', 'm', 'p'},
@@ -11,7 +12,8 @@ large_db = [
 minsup = 0.60
 filepath = None
 candidate = []
-leves = []
+level = []
+pointers = []
 db_len = 0
 
 # scan db once
@@ -102,7 +104,7 @@ def partition(low, high, low_high):
     swap(se + 1, high)
     return se + 1
 
-def swap(first, second)
+def swap(first, second):
     global candidate
     global level
     c_temp = candidate[first]
@@ -111,6 +113,18 @@ def swap(first, second)
     level[first] = level[second]
     candidate[second] = c_temp
     level[second] = l_temp
+
+def gen_tree():
+    # look at each transaction in database
+    # for each transaction, iterate through candidate IN ORDER
+    # if candidate in transaction, add child to root node
+    # change current node to NODE JUST ADDED
+    # repeat
+    # for next transaction, go back to root node
+    # for first candidate in transaction, check if child of current node
+    # if so, change pointer to child node
+    # if not, add to child of current node, change pointer to NODE JUST ADDED
+    # repeat
 
 # candidate = [10, 80, 30, 90, 40, 50, 70]
 # level = [1, 8, 3, 9, 4, 5, 7]
