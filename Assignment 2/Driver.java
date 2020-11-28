@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Scanner;
 
 public class Driver {
@@ -19,6 +18,8 @@ public class Driver {
 class FPGrowth {
 
     HashMap<Integer, Link> header_table;
+    // ArrayList<Link> header_table;
+    ArrayList<Link> ordering;
     int db_length;
     double minsup;
     int max_value;
@@ -26,34 +27,57 @@ class FPGrowth {
     FPGrowth(String filepath, double minsup, int max_value) {
         this.max_value = max_value;
         this.minsup = minsup;
-        this.header_table = gen_header_table(filepath);
-        // gen_tree(filepath);
+        gen_header_table(filepath);
+        gen_tree(filepath);
     }
 
-    // void gen_tree(String filepath) {
-    //     File input = new File(filepath);
-    //     // ArrayList<Link> unique = new ArrayList<Link>();
-    //     Link[] unique = new Link[this.max_value];
-    //     Node root = new Node(0);
-    //     try {
-    //         Scanner reader = new Scanner(input);
-    //         boolean first = true;
-    //         while(reader.hasNextLine()) {
-    //             if(first) {
-    //                 first = false;
-    //                 continue;
-    //             }
-    //             int[] elements = parseElements(reader.nextLine());
-
-    //         }
-    //     } catch(FileNotFoundException e) {
-    //         //TODO: fix
-    //     }
-    // }
-
-    HashMap<Integer, Link> gen_header_table(String filepath) {
+    void gen_tree(String filepath) {
         File input = new File(filepath);
-        HashMap<Integer, Link> header_table = new HashMap<Integer, Link>();
+        Node root = new Node(0);
+        Node pointer = root;
+        try {
+            Scanner reader = new Scanner(input);
+            boolean first = true;
+            while(reader.hasNextLine()) {
+                if(first) {
+                    reader.nextLine();
+                    first = false;
+                    continue;
+                }
+                ArrayList<Integer> ordered_elements = reorder(parseElements(reader.nextLine()));
+                for(int i : ordered_elements) {
+                    if(pointer.children.containsKey(i)) {
+                        pointer = pointer.children.get(i);
+                        continue;
+                    } else {
+                        Node t = new Node(i);
+                        this.header_table.get(i).pointers.add(t);
+                        pointer.children.put(i, t);
+                        pointer = t;
+                    }
+                }
+                pointer = root;
+            }
+            reader.close();
+        } catch(FileNotFoundException e) {
+            System.out.println(e);
+            //TODO: fix
+        }
+    }
+
+    ArrayList<Integer> reorder(int[] elements) {
+        ArrayList<Integer> ordered_elements = new ArrayList<Integer>();
+        for(Link l : this.ordering)
+            for(int i : elements)
+                if(l.value == i)
+                    ordered_elements.add(i);
+        return ordered_elements;
+    }
+
+    void gen_header_table(String filepath) {
+        File input = new File(filepath);
+        this.header_table = new HashMap<Integer, Link>();
+        this.ordering = new ArrayList<Link>();
         try {
             Scanner reader = new Scanner(input);
             boolean first = true;
@@ -72,14 +96,21 @@ class FPGrowth {
                     }
                 }
             }
+            gen_ordering();
             reader.close();
         } catch(FileNotFoundException e) {
             // TODO: ODODODODO
         }
-        return header_table;
     }
 
-    // Link[] gen_header_table(String filepath) {
+    void gen_ordering() {
+        for(Link i : this.header_table.values())
+            if(i.count >= this.db_length * this.minsup)
+                this.ordering.add(i);
+        Collections.sort(this.ordering);
+    }
+
+    // void gen_header_table(String filepath) {
     //     File input = new File(filepath);
     //     // ArrayList<Link> unique = new ArrayList<Link>();
     //     Link[] unique = new Link[this.max_value];
@@ -107,14 +138,12 @@ class FPGrowth {
     //                 // }
     //             }
     //         }
-    //         this.header_table = prune_sort(unique);
-    //         // unique.trimToSize();
+    //         prune_sort(unique);
     //         reader.close();
     //     } catch(FileNotFoundException e) {
     //         System.out.println(e);
     //         //TODO: handle exception
     //     }
-    //     return unique;
     // }
 
     int[] parseElements(String line) {
@@ -123,21 +152,20 @@ class FPGrowth {
         return arr;
     }
 
-    ArrayList<Link> prune_sort(Link[] arr) {
-        ArrayList<Link> header_table = new ArrayList<Link>();
-        for(Link i : arr) {
-            if(i == null)
-                continue;
-            header_table.add(i);
-        }
-        Collections.sort(header_table);
-        for(Iterator<Link> it = header_table.iterator(); it.hasNext();) {
-            Link i = it.next();
-            if(i.count < this.db_length * this.minsup)
-                it.remove();
-        }
-        return header_table;
-    }
+    // void prune_sort(Link[] arr) {
+    //     this.header_table = new ArrayList<Link>();
+    //     for(Link i : arr) {
+    //         if(i == null)
+    //             continue;
+    //         header_table.add(i);
+    //     }
+    //     Collections.sort(header_table);
+    //     for(Iterator<Link> it = header_table.iterator(); it.hasNext();) {
+    //         Link i = it.next();
+    //         if(i.count < this.db_length * this.minsup)
+    //             it.remove();
+    //     }
+    // }
 }
 
 class Node {
@@ -157,18 +185,22 @@ class Link implements Comparable<Link> {
 
     int value;
     int count;
-    ArrayList<Link> pointers;
+    ArrayList<Node> pointers;
 
     Link(int value) {
         this.value = value;
         this.count = 1;
-        this.pointers = new ArrayList<Link>();
+        this.pointers = new ArrayList<Node>();
     }
 
     public boolean equals(Object v) {
         if(v instanceof Link) {
             Link cp = (Link) v;
             if(cp.value == this.value)
+                return true;
+        } else if(v instanceof Integer) {
+            int cp = (int) v;
+            if(cp == this.value)
                 return true;
         }
         return false;
