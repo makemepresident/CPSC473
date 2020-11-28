@@ -1,12 +1,16 @@
 import sys
-from tree import Node
+
+class Node:
+
+    def __init__(self, value: int) -> None:
+        self.value = value
+        self.children = []
 
 large_db = [
-    {'a', 'c', 'd', 'f', 'g', 'i', 'm', 'p'},
-    {'a', 'b', 'c', 'f', 'l', 'm', 'o'},
-    {'b', 'f', 'h', 'j', 'o', 'w'},
-    {'b', 'c', 'k', 's', 'p'},
-    {'a', 'f', 'c', 'e', 'l', 'p', 'm', 'n'}
+    '1  3   4',
+    '2  3   5',
+    '1  2   3   5',
+    '2  5'
 ]
 
 minsup = 0.60
@@ -23,6 +27,12 @@ db_len = 0
 # build tree based on sorted, pruned singletons
 # as tree is being built, increment count of node for each transaction present
 # store pointers from items in header table to respective nodes (candidateay of pointers?)
+
+def fp_growth():
+    gen_level_table() # generate candidate with levels
+    two_quickSort(0, len(candidate) - 1, True) # sorts candidates
+    prune() # uses minsup to prune
+    
 
 def init_candidate():
     global db_len
@@ -52,6 +62,7 @@ def parseEle(string):
     return elements
 
 def gen_level_table():
+    init_candidate()
     global level
     global filepath
     level = [0] * len(candidate)
@@ -125,18 +136,8 @@ def gen_tree():
     # if so, change pointer to child node
     # if not, add to child of current node, change pointer to NODE JUST ADDED
     # repeat
-
-# candidate = [10, 80, 30, 90, 40, 50, 70]
-# level = [1, 8, 3, 9, 4, 5, 7]
-# db_len = 4
-# print(candidate)
-# print(level)
-# print()
-# two_quickSort(0, len(candidate) - 1, False)
-# print(candidate)
-# print(level)
-# print()
-# prune()
-# print(candidate)
-# print(level)
-# print()
+    global filepath
+    db = open(filepath)
+    for index, value in enumerate(db):
+        if index == 0:
+            continue
